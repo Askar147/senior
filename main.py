@@ -9,7 +9,7 @@ app = FastAPI()
 @app.post("/uploadfile/")
 async def create_upload_file(file_received: List[UploadFile]):
     with TemporaryDirectory(prefix="static-") as tmpdir:
-        dict_emotions = dict()
+        emotions = dict()
 
         for file in file_received:
             new_file_path = tmpdir + "/" + file.filename
@@ -20,9 +20,9 @@ async def create_upload_file(file_received: List[UploadFile]):
             recognizer = m.EmotionRecognizer('.\\first_model.h5')
             result = recognizer(new_file_path)
 
-            dict_emotions.update({file.filename: result})
+            emotions.update({file.filename: result})
 
-        return {"results": dict_emotions}
+        return {"results": emotions}
 
 
 @app.websocket("/ws")
