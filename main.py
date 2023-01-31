@@ -18,11 +18,11 @@ async def create_upload_file(file_received: List[UploadFile]):
                 file_saved.write(file.file.read())
 
             recognizer = m.EmotionRecognizer('.\\first_model.h5')
-            a = recognizer(new_file_path)
+            result = recognizer(new_file_path)
 
-            dict_emotions.update({file.filename: a})
+            dict_emotions.update({file.filename: result})
 
-        return {"result": dict_emotions}
+        return {"results": dict_emotions}
 
 
 @app.websocket("/ws")
