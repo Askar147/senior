@@ -17,3 +17,5 @@ pythonenv*
 __pycache__/
 *.py[cod]
 *$py.class
+
+tet.py
