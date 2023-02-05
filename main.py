@@ -7,10 +7,8 @@ import model_call
 import os
 
 app = FastAPI()
+absolute_model_path = os.path.abspath('./first_model.h5')
 
-
-model_path = './first_model.h5'
-absolute_model_path = os.path.abspath(model_path)
 
 @app.post("/uploadfile/")
 async def create_upload_file(file_received: List[UploadFile]):
@@ -23,10 +21,7 @@ async def create_upload_file(file_received: List[UploadFile]):
             with open(new_file_path, 'wb') as file_saved:
                 file_saved.write(file.file.read())
 
-            recognizer = model_call.EmotionRecognizer(absolute_model_path)
-            result = recognizer(new_file_path)
-
-            emotions.update({file.filename: result})
+            emotions.update({file.filename: recognize(new_file_path)})
 
         return {"results": emotions}
 
@@ -36,11 +31,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
         binary_data = await websocket.receive_bytes()
-        # Convert binary data to SpooledTemporaryFile
-        file = tempfile.NamedTemporaryFile(
-            max_size=1000000, mode="wb")
-        file.write(binary_data)
-        file.seek(0)
+        file = convert_binary_temporary(binary_data)
 
         with TemporaryDirectory(prefix="static-") as tmpdir:
             new_file_path = os.path.join(tmpdir, file.filename)
@@ -48,6 +39,18 @@ async def websocket_endpoint(websocket: WebSocket):
             with open(new_file_path, 'wb') as file_saved:
                 file_saved.write(file.read())
 
-            recognizer = model_call.EmotionRecognizer(absolute_model_path)
-            result = recognizer(new_file_path)
-            await websocket.send_text(f"Message text was sent: " + result)
+            await websocket.send_text(f"Message text was sent: " + recognize(new_file_path))
+
+
+def convert_binary_temporary(binary_data: bytes):
+    file = tempfile.NamedTemporaryFile(
+        max_size=1000000, mode="wb")
+    file.write(binary_data)
+    file.seek(0)
+    return file
+
+
+def recognize(path: str):
+    recognizer = model_call.EmotionRecognizer(absolute_model_path)
+    result = recognizer(path)
+    return result
