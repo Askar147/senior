@@ -33,7 +33,7 @@ async def websocket_endpoint(websocket: WebSocket):
         with TemporaryDirectory(prefix="static-") as tmpdir:
             new_file_path = create_new_file_path(tmpdir, file.filename)
             write_file_to_directory(new_file_path, file)
-            await websocket.send_text(f"Message text was sent: " + recognize(new_file_path))
+            await websocket.send_text(file.filename + " : " + recognize(new_file_path))
 
 
 def convert_binary_temporary(binary_data: bytes):
