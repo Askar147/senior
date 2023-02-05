@@ -1,6 +1,5 @@
 from typing import List
 from fastapi import FastAPI, UploadFile, WebSocket
-from fastapi.responses import HTMLResponse
 from tempfile import TemporaryDirectory
 import tempfile
 import model_call
