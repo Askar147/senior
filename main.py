@@ -4,9 +4,13 @@ from fastapi.responses import HTMLResponse
 from tempfile import TemporaryDirectory
 import tempfile
 import model_call
+import os
 
 app = FastAPI()
 
+
+model_path = './first_model.h5'
+absolute_model_path = os.path.abspath(model_path)
 
 @app.post("/uploadfile/")
 async def create_upload_file(file_received: List[UploadFile]):
@@ -14,12 +18,12 @@ async def create_upload_file(file_received: List[UploadFile]):
         emotions = dict()
 
         for file in file_received:
-            new_file_path = tmpdir + "/" + file.filename
+            new_file_path = os.path.join(tmpdir, file.filename)
 
             with open(new_file_path, 'wb') as file_saved:
                 file_saved.write(file.file.read())
 
-            recognizer = model_call.EmotionRecognizer('.\\first_model.h5')
+            recognizer = model_call.EmotionRecognizer(absolute_model_path)
             result = recognizer(new_file_path)
 
             emotions.update({file.filename: result})
@@ -39,11 +43,11 @@ async def websocket_endpoint(websocket: WebSocket):
         file.seek(0)
 
         with TemporaryDirectory(prefix="static-") as tmpdir:
-            new_file_path = tmpdir + "/" + file.name
+            new_file_path = os.path.join(tmpdir, file.filename)
 
             with open(new_file_path, 'wb') as file_saved:
                 file_saved.write(file.read())
 
-            recognizer = model_call.EmotionRecognizer('.\\first_model.h5')
+            recognizer = model_call.EmotionRecognizer(absolute_model_path)
             result = recognizer(new_file_path)
             await websocket.send_text(f"Message text was sent: " + result)

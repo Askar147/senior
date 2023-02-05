@@ -6,6 +6,7 @@ from tensorflow import keras
 
 inp = '/content/drive/MyDrive/Colab Notebooks/speech/audio_speech_actors_01-24/Actor_06/03-01-06-02-01-01-06.wav'
 model_path = './first_model.h5'
+absolute_model_path = os.path.abspath(model_path)
 
 
 class EmotionRecognizer():
