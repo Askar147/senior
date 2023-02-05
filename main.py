@@ -1,7 +1,9 @@
 from typing import List
-from fastapi import FastAPI, File, UploadFile, WebSocket
+from fastapi import FastAPI, UploadFile, WebSocket
+from fastapi.responses import HTMLResponse
 from tempfile import TemporaryDirectory
-import model_call as m
+import tempfile
+import model_call
 
 app = FastAPI()
 
@@ -17,7 +19,7 @@ async def create_upload_file(file_received: List[UploadFile]):
             with open(new_file_path, 'wb') as file_saved:
                 file_saved.write(file.file.read())
 
-            recognizer = m.EmotionRecognizer('.\\first_model.h5')
+            recognizer = model_call.EmotionRecognizer('.\\first_model.h5')
             result = recognizer(new_file_path)
 
             emotions.update({file.filename: result})
@@ -29,8 +31,19 @@ async def create_upload_file(file_received: List[UploadFile]):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
-        data = await websocket.receive_bytes()
-        with open("audio.wav", "wb") as f:
-            f.write(data)
-            await websocket.send_text(f"Message was: {f.read()}")
-        await websocket.send_text(f"Message text was sent")
+        binary_data = await websocket.receive_bytes()
+        # Convert binary data to SpooledTemporaryFile
+        file = tempfile.NamedTemporaryFile(
+            max_size=1000000, mode="wb")
+        file.write(binary_data)
+        file.seek(0)
+
+        with TemporaryDirectory(prefix="static-") as tmpdir:
+            new_file_path = tmpdir + "/" + file.name
+
+            with open(new_file_path, 'wb') as file_saved:
+                file_saved.write(file.read())
+
+            recognizer = model_call.EmotionRecognizer('.\\first_model.h5')
+            result = recognizer(new_file_path)
+            await websocket.send_text(f"Message text was sent: " + result)
