@@ -12,18 +12,15 @@ absolute_model_path = os.path.abspath('./first_model.h5')
 
 @app.post("/uploadfile/")
 async def create_upload_file(file_received: List[UploadFile]):
+    emotions = dict()
+
     with TemporaryDirectory(prefix="static-") as tmpdir:
-        emotions = dict()
-
         for file in file_received:
-            new_file_path = os.path.join(tmpdir, file.filename)
-
-            with open(new_file_path, 'wb') as file_saved:
-                file_saved.write(file.file.read())
-
+            new_file_path = create_new_file_path(tmpdir, file.filename)
+            write_file_to_directory(new_file_path, file.file)
             emotions.update({file.filename: recognize(new_file_path)})
 
-        return {"results": emotions}
+    return {"results": emotions}
 
 
 @app.websocket("/ws")
@@ -34,11 +31,8 @@ async def websocket_endpoint(websocket: WebSocket):
         file = convert_binary_temporary(binary_data)
 
         with TemporaryDirectory(prefix="static-") as tmpdir:
-            new_file_path = os.path.join(tmpdir, file.filename)
-
-            with open(new_file_path, 'wb') as file_saved:
-                file_saved.write(file.read())
-
+            new_file_path = create_new_file_path(tmpdir, file.filename)
+            write_file_to_directory(new_file_path, file)
             await websocket.send_text(f"Message text was sent: " + recognize(new_file_path))
 
 
@@ -54,3 +48,13 @@ def recognize(path: str):
     recognizer = model_call.EmotionRecognizer(absolute_model_path)
     result = recognizer(path)
     return result
+
+
+def create_new_file_path(dir: str, filename: str):
+    new_file_path = os.path.join(dir, filename)
+    return new_file_path
+
+
+def write_file_to_directory(path: str, file):
+    with open(path, 'wb') as file_saved:
+        file_saved.write(file.read())
