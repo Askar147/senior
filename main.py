@@ -9,6 +9,11 @@ app = FastAPI()
 absolute_model_path = os.path.abspath('./first_model.h5')
 
 
+@app.post("/")
+async def main():
+    return {"message": "Hello world!"}
+
+
 @app.post("/uploadfile/")
 async def create_upload_file(file_received: List[UploadFile]):
     emotions = dict()
