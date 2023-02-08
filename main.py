@@ -9,7 +9,7 @@ app = FastAPI()
 absolute_model_path = os.path.abspath('./first_model.h5')
 
 
-@app.post("/")
+@app.get("/")
 async def main():
     return {"message": "Hello world!"}
 
