@@ -1,13 +1,16 @@
 from typing import List
-from fastapi import FastAPI, UploadFile, WebSocket, Body
+from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect
 from tempfile import TemporaryDirectory
 import tempfile
 import model_call
 import os
 import base64
+import ConnectionManager
 
 app = FastAPI()
 absolute_model_path = os.path.abspath('./first_model.h5')
+
+manager = ConnectionManager.ConnectionManager()
 
 
 @app.get("/")
@@ -30,15 +33,19 @@ async def create_upload_file(file_received: List[UploadFile]):
 
 @app.websocket("/ws/{filename}")
 async def websocket_endpoint(websocket: WebSocket, filename: str):
-    await websocket.accept()
-    while True:
-        binary_data = await websocket.receive_text()
-        file = convert_base_temporary(binary_data)
+    await manager.connect(websocket)
+    try:
+        while True:
+            binary_data = await websocket.receive_text()
+            file = convert_base_temporary(binary_data)
 
-        with TemporaryDirectory(prefix="static-") as tmpdir:
-            new_file_path = create_new_file_path(tmpdir, filename)
-            write_file_to_directory(new_file_path, file)
-            await websocket.send_text(filename + " : " + recognize(new_file_path))
+            with TemporaryDirectory(prefix="static-") as tmpdir:
+                new_file_path = create_new_file_path(tmpdir, filename)
+                write_file_to_directory(new_file_path, file)
+                await websocket.send_text(filename + " : " + recognize(new_file_path))
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client disconnected")
 
 
 @app.post("/testws")
