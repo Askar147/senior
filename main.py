@@ -31,9 +31,10 @@ async def create_upload_file(file_received: List[UploadFile]):
     return {"results": emotions}
 
 
-@app.websocket("/ws/{filename}")
-async def websocket_endpoint(websocket: WebSocket, filename: str):
+@app.websocket("/ws/")
+async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    filename = "a"
     try:
         while True:
             binary_data = await websocket.receive_text()
