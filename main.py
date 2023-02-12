@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from tempfile import TemporaryDirectory
 import tempfile
 import model_call
@@ -10,8 +11,16 @@ import random
 import string
 
 app = FastAPI()
-absolute_model_path = os.path.abspath('./first_model.h5')
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+absolute_model_path = os.path.abspath('./first_model.h5')
 manager = ConnectionManager.ConnectionManager()
 
 
