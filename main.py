@@ -6,6 +6,8 @@ import model_call
 import os
 import base64
 import ConnectionManager
+import random
+import string
 
 app = FastAPI()
 absolute_model_path = os.path.abspath('./first_model.h5')
@@ -31,10 +33,9 @@ async def create_upload_file(file_received: List[UploadFile]):
     return {"results": emotions}
 
 
-@app.websocket("/ws/")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/ws/{filename}")
+async def websocket_endpoint(websocket: WebSocket, filename: str):
     await manager.connect(websocket)
-    filename = "a"
     try:
         while True:
             binary_data = await websocket.receive_text()
@@ -56,6 +57,16 @@ async def test_websocket_endpoint(name: str, binary_data: str = Body(..., exampl
         new_file_path = create_new_file_path(tmpdir, name)
         write_file_to_directory(new_file_path, file)
         return name + " : " + recognize(new_file_path)
+
+
+@app.get("/token")
+async def synchronous_token():
+    return generate_random_string(10)
+
+
+def generate_random_string(length):
+    letters = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters) for i in range(length))
 
 
 def convert_binary_temporary(binary_data: bytes):
