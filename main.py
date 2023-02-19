@@ -79,8 +79,7 @@ def generate_random_string(length):
 
 
 def convert_binary_temporary(binary_data: bytes):
-    file = tempfile.NamedTemporaryFile(
-        max_size=1000000, mode="wb")
+    file = tempfile.NamedTemporaryFile(mode="wb")
     file.write(binary_data)
     file.seek(0)
     return file
