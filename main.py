@@ -58,9 +58,10 @@ async def create_upload_file(file_received: List[UploadFile]):
     return {"results": emotions}
 
 
-@app.websocket("/ws/{filename}")
-async def websocket_endpoint(websocket: WebSocket, filename: str):
+@app.websocket("/ws/{key}/{order}")
+async def websocket_endpoint(websocket: WebSocket, key: str, order: int, db: Session = Depends(get_db)):
     await manager.connect(websocket)
+    filename = key + "-" + str(order)
     try:
         while True:
             binary_data = await websocket.receive_text()
@@ -69,7 +70,9 @@ async def websocket_endpoint(websocket: WebSocket, filename: str):
             with TemporaryDirectory(prefix="static-") as tmpdir:
                 new_file_path = create_new_file_path(tmpdir, filename)
                 write_file_to_directory(new_file_path, file)
-                await websocket.send_text(filename + " : " + recognize(new_file_path))
+                result = recognize(new_file_path)
+                crud.create_result(db, key, order, result)
+                await websocket.send_text(filename + " : " + result)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast(f"Client disconnected")
@@ -95,6 +98,11 @@ def test_db_results(key: str, db: Session = Depends(get_db)):
 @app.get("/token")
 async def synchronous_token():
     return generate_random_string(10)
+
+
+@app.post("/wsposttest/{key}/{order}")
+def test_db_results_post(key: str, order: int, db: Session = Depends(get_db)):
+    return crud.create_result(db, key, order, "neutralize")
 
 
 def generate_random_string(length):
