@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import TemporaryDirectory
 import tempfile
@@ -10,7 +10,23 @@ import ConnectionManager
 import random
 import string
 
+from sqlalchemy.orm import Session
+
+from database_pg import crud, models, schemes
+from database_pg.database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,6 +82,14 @@ async def test_websocket_endpoint(name: str, binary_data: str = Body(..., exampl
         new_file_path = create_new_file_path(tmpdir, name)
         write_file_to_directory(new_file_path, file)
         return name + " : " + recognize(new_file_path)
+
+
+@app.get("/wsresults/{key}", response_model=list[schemes.Result])
+def test_db_results(key: str, db: Session = Depends(get_db)):
+    db_result = crud.get_result(db, key)
+    if db_result is None:
+        raise HTTPException(status_code=404, detail="Result not found")
+    return db_result
 
 
 @app.get("/token")
