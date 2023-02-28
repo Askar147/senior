@@ -58,13 +58,16 @@ async def create_upload_file(file_received: List[UploadFile]):
     return {"results": emotions}
 
 
-@app.websocket("/ws/{key}/{order}")
-async def websocket_endpoint(websocket: WebSocket, key: str, order: int, db: Session = Depends(get_db)):
+@app.websocket("/ws/{key}")
+async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depends(get_db)):
     await manager.connect(websocket)
-    filename = key + "-" + str(order)
+    order = 0
     try:
         while True:
             binary_data = await websocket.receive_text()
+            order += 1
+            filename = key + "-" + str(order)
+
             file = convert_base_temporary(binary_data)
 
             with TemporaryDirectory(prefix="static-") as tmpdir:
