@@ -19,3 +19,6 @@ __pycache__/
 *$py.class
 
 tet.py
+
+alembic
+alembic.ini
