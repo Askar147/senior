@@ -70,6 +70,7 @@ async def websocket_endpoint(websocket: WebSocket, key: str, order: int, db: Ses
             with TemporaryDirectory(prefix="static-") as tmpdir:
                 new_file_path = create_new_file_path(tmpdir, filename)
                 write_file_to_directory(new_file_path, file)
+
                 result = recognize(new_file_path)
                 crud.create_result(db, key, order, result)
                 await websocket.send_text(filename + " : " + result)
