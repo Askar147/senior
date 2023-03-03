@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect, HTTPException, Depends, File
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import TemporaryDirectory
 import tempfile
@@ -9,11 +9,14 @@ import base64
 import ConnectionManager
 import random
 import string
+import io
 
 from sqlalchemy.orm import Session
 
 from database_pg import crud, models, schemes
 from database_pg.database import SessionLocal, engine
+
+from pydub import AudioSegment
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -45,17 +48,33 @@ async def main():
     return {"message": "Hello world!"}
 
 
-@app.post("/uploadfile/")
-async def create_upload_file(file_received: List[UploadFile]):
+@app.post("/uploadfiles/")
+async def create_upload_files(file_received: List[UploadFile] = File(description="Multiple files as UploadFile")):
     emotions = dict()
 
     with TemporaryDirectory(prefix="static-") as tmpdir:
         for file in file_received:
-            new_file_path = create_new_file_path(tmpdir, file.filename)
-            write_file_to_directory(new_file_path, file.file)
+            mp3_audio = AudioSegment.from_file(io.BytesIO(await file.read()), format="mp3")
+            wav_audio = mp3_audio.export(format="wav")
+
+            new_file_path = create_new_file_path(tmpdir, "converted_audio.wav")
+            write_file_to_directory(new_file_path, wav_audio)
             emotions.update({file.filename: recognize(new_file_path)})
 
     return {"results": emotions}
+
+
+@app.post("/uploadfile/")
+async def create_upload_file(file_received: UploadFile = File(description="Single files as UploadFile")):
+
+    with TemporaryDirectory(prefix="static-") as tmpdir:
+        mp3_audio = AudioSegment.from_file(io.BytesIO(await file_received.read()), format="mp3")
+        wav_audio = mp3_audio.export(format="wav")
+
+        new_file_path = create_new_file_path(tmpdir, "converted_audio.wav")
+        write_file_to_directory(new_file_path, wav_audio)
+
+        return {file_received.filename: recognize(new_file_path)}
 
 
 @app.websocket("/ws/{key}")
