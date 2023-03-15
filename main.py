@@ -43,12 +43,12 @@ absolute_model_path = os.path.abspath('./first_model.h5')
 manager = ConnectionManager.ConnectionManager()
 
 
-@app.get("/")
+@app.get("/api/")
 async def main():
     return {"message": "Hello world!"}
 
 
-@app.post("/uploadfiles/")
+@app.post("/api/uploadfiles/")
 async def create_upload_files(file_received: List[UploadFile] = File(description="Multiple files as UploadFile")):
     emotions = dict()
 
@@ -64,7 +64,7 @@ async def create_upload_files(file_received: List[UploadFile] = File(description
     return {"results": emotions}
 
 
-@app.post("/uploadfile/")
+@app.post("/api/uploadfile/")
 async def create_upload_file(file_received: UploadFile = File(description="Single files as UploadFile")):
 
     with TemporaryDirectory(prefix="static-") as tmpdir:
@@ -101,7 +101,7 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
         await manager.broadcast(f"Client disconnected")
 
 
-@app.post("/testws")
+@app.post("/api/testws")
 async def test_websocket_endpoint(name: str, binary_data: str = Body(..., example="aGVsbG8=")):
     file = convert_base_temporary(binary_data)
     with TemporaryDirectory(prefix="static-") as tmpdir:
@@ -110,7 +110,7 @@ async def test_websocket_endpoint(name: str, binary_data: str = Body(..., exampl
         return name + " : " + recognize(new_file_path)
 
 
-@app.get("/wsresults/{key}", response_model=list[schemes.Result])
+@app.get("/api/wsresults/{key}", response_model=list[schemes.Result])
 def test_db_results(key: str, db: Session = Depends(get_db)):
     db_result = crud.get_result(db, key)
     if db_result is None:
@@ -118,12 +118,12 @@ def test_db_results(key: str, db: Session = Depends(get_db)):
     return db_result
 
 
-@app.get("/token")
+@app.get("/api/token")
 async def synchronous_token():
     return generate_random_string(10)
 
 
-@app.post("/wsposttest/{key}/{order}")
+@app.post("/api/wsposttest/{key}/{order}")
 def test_db_results_post(key: str, order: int, db: Session = Depends(get_db)):
     return crud.create_result(db, key, order, "neutralize")
 
