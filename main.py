@@ -48,6 +48,22 @@ async def main():
     return {"message": "Hello world!"}
 
 
+@app.post("/api/uploadsinglefile")
+async def create_upload_single_file(file_received: UploadFile = File(description="Single files as UploadFile")):
+    emotions = dict()
+    segment_length_ms = 3000
+    with TemporaryDirectory(prefix="static-") as tmpdir:
+        mp3_audio = AudioSegment.from_file(io.BytesIO(await file_received.read()), format="mp3")
+
+        for i, segment in enumerate(mp3_audio[::segment_length_ms]):
+            filename = f"segment_{i}.wav"
+            output_file = create_new_file_path(tmpdir, filename)
+            segment.export(output_file, format="wav")
+            emotions.update({filename: recognize(output_file)})
+
+        return {"results": emotions}
+
+
 @app.post("/api/uploadfiles/")
 async def create_upload_files(file_received: List[UploadFile] = File(description="Multiple files as UploadFile")):
     emotions = dict()
