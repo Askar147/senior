@@ -86,6 +86,7 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
 
                 result = recognize(new_file_path)
                 json_str = json.dumps(result)
+
                 crud.create_result(db, key, order, json_str)
                 emotions.update({filename: result})
                 await websocket.send_json(emotions)
