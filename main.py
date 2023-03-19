@@ -75,6 +75,7 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
             binary_data = await websocket.receive_text()
             order += 1
             filename = key + "-" + str(order)
+            emotions = dict()
 
             file = convert_base_temporary(binary_data)
 
@@ -84,7 +85,8 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
 
                 result = recognize(new_file_path)
                 crud.create_result(db, key, order, result)
-                await websocket.send_text(filename + " : " + result)
+                emotions.update({filename: result})
+                await websocket.send_json(emotions)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast(f"Client disconnected")
