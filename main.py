@@ -11,6 +11,7 @@ import ConnectionManager
 import random
 import string
 import io
+import json
 
 from sqlalchemy.orm import Session
 
@@ -84,7 +85,8 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
                 write_file_to_directory(new_file_path, file)
 
                 result = recognize(new_file_path)
-                crud.create_result(db, key, order, result)
+                json_str = json.dumps(result)
+                crud.create_result(db, key, order, json_str)
                 emotions.update({filename: result})
                 await websocket.send_json(emotions)
     except WebSocketDisconnect:
