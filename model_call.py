@@ -28,3 +28,5 @@ class EmotionRecognizer():
         reformatted_audio = np.array([reformatted_audio])
         result = self.model.predict(reformatted_audio)
         return self.emotions[int(np.where(result[0] == result[0].max())[0])]
+
+# balgyn was here
