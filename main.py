@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import FastAPI, UploadFile, WebSocket, Body, WebSocketDisconnect, HTTPException, Depends, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from tempfile import TemporaryDirectory
 import tempfile
 import model_call
@@ -60,8 +61,9 @@ async def create_upload_single_file(file_received: UploadFile = File(description
             output_file = create_new_file_path(tmpdir, filename)
             segment.export(output_file, format="wav")
             emotions.update({filename: recognize(output_file)})
+            print(emotions)
 
-        return {"results": emotions}
+        return JSONResponse(emotions)
 
 
 @app.post("/api/uploadfiles/")
@@ -120,10 +122,12 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
 @app.post("/api/testws")
 async def test_websocket_endpoint(name: str, binary_data: str = Body(..., example="aGVsbG8=")):
     file = convert_base_temporary(binary_data)
+    emotions = dict()
     with TemporaryDirectory(prefix="static-") as tmpdir:
         new_file_path = create_new_file_path(tmpdir, name)
         write_file_to_directory(new_file_path, file)
-        return name + " : " + recognize(new_file_path)
+        emotions.update({name: recognize(new_file_path)})
+        return JSONResponse(emotions)
 
 
 @app.get("/api/wsresults/{key}", response_model=list[schemes.Result])
