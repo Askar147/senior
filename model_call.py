@@ -39,7 +39,7 @@ class EmotionRecognizer:
         for i,j in zip(result[0], self.classes):
           temp.append((i,j))
         temp.sort(key = lambda x: x[0], reverse = True)
-        l = {y:x for x,y in temp}
+        l = {str(y):str(x) for x,y in temp}
         return l
         print(l)
         return self.classes[int(np.where(result[0] == result[0].max())[0])]
