@@ -75,7 +75,7 @@ async def websocket_endpoint(websocket: WebSocket, key: str, db: Session = Depen
         while True:
             binary_data = await websocket.receive_text()
             order += 1
-            filename = key + "-" + str(order)
+            filename = key + "_" + str(order)
             emotions = dict()
 
             file = convert_base_temporary(binary_data)
