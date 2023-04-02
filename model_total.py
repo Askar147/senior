@@ -6,8 +6,8 @@ from keras.models import load_model
 
 class EmotionRecognizer:
     def __init__(self, model_path):
-        self.emotions = ['Angry', 'Surprise', 'Disgust',
-                         'Fear', 'Happy', 'Neutral', 'Sad']
+        self.emotions = ['angry', 'surprise', 'disgust',
+                         'fear', 'happy', 'neutral', 'sad']
 
         self.model = load_model(model_path, compile=False)
         self.sample_rate = 22050
