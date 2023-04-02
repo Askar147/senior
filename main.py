@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from tempfile import TemporaryDirectory
 import tempfile
-import model_call
+import model_total
 import os
 import base64
 import ConnectionManager
@@ -41,7 +41,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-absolute_model_path = os.path.abspath('./first_model.h5')
+absolute_model_path = os.path.abspath('./model95.h5')
 manager = ConnectionManager.ConnectionManager()
 
 
@@ -134,7 +134,7 @@ def convert_base_temporary(data: str):
 
 
 def recognize(path: str):
-    recognizer = model_call.EmotionRecognizer(absolute_model_path)
+    recognizer = model_total.EmotionRecognizer(absolute_model_path)
     result = recognizer(path)
     return result
 
