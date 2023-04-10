@@ -46,6 +46,7 @@ class EmotionRecognizer:
         mfccs = self.get_features(audio_path)
         mfccs = np.expand_dims(mfccs, axis=-1)
         predictions = self.model.predict(np.array([mfccs]))
+        predictions[0] *= 100
         output = {
             'angry': str(predictions[0][0]),
             'neutral': str(predictions[0][1]+predictions[0][5]),
