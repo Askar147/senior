@@ -46,4 +46,13 @@ class EmotionRecognizer:
         mfccs = self.get_features(audio_path)
         mfccs = np.expand_dims(mfccs, axis=-1)
         predictions = self.model.predict(np.array([mfccs]))
-        return {self.emotions[i]: str(float(predictions[0][i]*100)) for i in range(len(self.emotions))}
+        output = {
+            'angry': str(predictions[0][0]),
+            'neutral': str(predictions[0][1]+predictions[0][5]),
+            'disgust': str(predictions[0][2]),
+            'fear': str(predictions[0][3]),
+            'happy': str(predictions[0][4]),
+            'sad': str(predictions[0][6]),
+            'surprise': str(predictions[0][7])
+        }
+        return output
