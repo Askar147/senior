@@ -12,6 +12,7 @@ import random
 import string
 import io
 import json
+import math
 
 from sqlalchemy.orm import Session
 
@@ -53,16 +54,26 @@ async def main():
 @app.post("/api/uploadsinglefile")
 async def create_upload_single_file(file_received: UploadFile = File(description="Single files as UploadFile")):
     emotions = dict()
-    segment_length_ms = 3000
     with TemporaryDirectory(prefix="static-") as tmpdir:
         mp3_audio = AudioSegment.from_file(io.BytesIO(await file_received.read()), format="mp3")
 
-        for i, segment in enumerate(mp3_audio[::segment_length_ms]):
+        # Calculate the length of the audio file in milliseconds
+        audio_length_ms = len(mp3_audio)
+
+        print(audio_length_ms)
+        # Calculate the number of segments based on the desired segment length
+        if audio_length_ms > 4000:
+            num_segments = math.ceil(
+                audio_length_ms / math.floor(audio_length_ms / 3000))
+        else:
+            num_segments = 4000
+
+        for i, segment in enumerate(mp3_audio[::num_segments]):
             filename = f"segment_{i}.wav"
             output_file = create_new_file_path(tmpdir, filename)
             segment.export(output_file, format="wav")
             emotions.update({filename: recognize(output_file)})
-            print(emotions)
+            print(num_segments)
 
         return JSONResponse(emotions)
 
