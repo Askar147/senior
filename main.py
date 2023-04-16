@@ -62,9 +62,9 @@ async def create_upload_single_file(file_received: UploadFile = File(description
 
         print(audio_length_ms)
         # Calculate the number of segments based on the desired segment length
-        if audio_length_ms > 4000:
+        if audio_length_ms > 2000:
             num_segments = math.ceil(
-                audio_length_ms / math.floor(audio_length_ms / 3000))
+                audio_length_ms / math.floor(audio_length_ms / 2000))
         else:
             num_segments = 4000
 
